@@ -131,6 +131,22 @@ jobs:
         shell: bash
         run: find $LibrariesPath '(' '(' ! '(' -name '*.lib' -o -name '*.a' -o -name '*.exe' -o -name '*.h' -o -name '*.hpp' -o -name '*.inc' -o -name '*.cmake' -o -name '*.pc' -o -path '*/include/*' -o -path '*/objects-*' -o -path '*/cache_keys/*' -o -path '*/patches/*' -o -path '*/nv-codec-headers/*' -o -path '*/tdesktop_rust/*' ')' -type f ')' -o -empty ')' -delete
 
+      - name: Free up runner disk space.
+        shell: pwsh
+        run: |
+          $targets = @(
+            "$env:AGENT_TOOLSDIRECTORY",
+            "C:\Android",
+            "C:\Program Files\Android",
+            "C:\Program Files (x86)\Android",
+            "C:\Program Files\Microsoft SDKs\Android",
+            "C:\Program Files (x86)\Microsoft Visual Studio\Shared\Android"
+          )
+          foreach ($t in $targets) {
+            Get-Item $t -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          Get-PSDrive C | Select-Object Used, Free | Format-Table
+
       - name: Telegram Desktop build.
         env:
           API_ID: ${{ secrets.TDESKTOP_API_ID }}
@@ -148,14 +164,13 @@ jobs:
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON
 
-          cmake --build ..\out --config Debug --parallel
+          cmake --build ..\out --config Debug --target Telegram --parallel
 
       - name: Collect artifact.
         run: |
           set OUT=%TBUILD%\%REPO_NAME%\out\Debug
           mkdir artifact
           move %OUT%\Telegram.exe artifact\
-          move %OUT%\Updater.exe artifact\
 
       - uses: actions/upload-artifact@v7
         name: Upload artifact.
