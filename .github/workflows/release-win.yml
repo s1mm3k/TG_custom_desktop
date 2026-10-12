@@ -134,8 +134,12 @@ jobs:
       - name: Free up runner disk space.
         shell: pwsh
         run: |
+          # WHY: Android SDK/NDK are the largest reclaimable chunk and this is a
+          # Windows-only fork, so they are never needed.
           $targets = @(
-            "$env:AGENT_TOOLSDIRECTORY",
+            "$env:ANDROID_HOME",
+            "$env:ANDROID_SDK_ROOT",
+            "$env:ANDROID_NDK_HOME",
             "C:\Android",
             "C:\Program Files\Android",
             "C:\Program Files (x86)\Android",
@@ -143,7 +147,15 @@ jobs:
             "C:\Program Files (x86)\Microsoft Visual Studio\Shared\Android"
           )
           foreach ($t in $targets) {
-            Get-Item $t -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            if ($t) { Get-Item $t -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
+          }
+          # WHY: trim the hosted tool cache but keep Python - configure.py runs
+          # it during the build step and it must stay on PATH.
+          $tc = $env:AGENT_TOOLSDIRECTORY
+          if ($tc -and (Test-Path $tc)) {
+            Get-ChildItem $tc -Directory -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -ne 'Python' } |
+              Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
           }
           Get-PSDrive C | Select-Object Used, Free | Format-Table
 
