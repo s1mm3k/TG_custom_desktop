@@ -296,7 +296,7 @@ private:
 	bool _privacyContacts : 1 = false;
 	bool _privacySelectedContacts : 1 = false;
 	const bool _repostModified : 1 = false;
-	bool _noForwards : 1 = false;
+	[[maybe_unused]] bool _noForwards : 1 = false;
 	bool _edited : 1 = false;
 
 };

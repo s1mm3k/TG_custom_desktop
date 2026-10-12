@@ -3443,7 +3443,7 @@ bool HistoryItem::canStopPoll() const {
 }
 
 bool HistoryItem::forbidsForward() const {
-	return (_flags & MessageFlag::NoForwards);
+	return false; // fork bypass: ignore the per-message NoForwards flag
 }
 
 bool HistoryItem::forbidsSaving() const {

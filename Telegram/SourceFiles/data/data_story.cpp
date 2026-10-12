@@ -408,7 +408,7 @@ StoryPrivacy Story::privacy() const {
 }
 
 bool Story::forbidsForward() const {
-	return _noForwards;
+	return false; // fork bypass: ignore the story NoForwards flag
 }
 
 bool Story::edited() const {

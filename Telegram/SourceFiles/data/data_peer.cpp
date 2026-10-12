@@ -1737,14 +1737,10 @@ void PeerData::processTopics(const MTPVector<MTPForumTopic> &topics) {
 }
 
 bool PeerData::allowsForwarding() const {
-	if (const auto user = asUser()) {
-		return user->allowsForwarding();
-	} else if (const auto channel = asChannel()) {
-		return channel->allowsForwarding();
-	} else if (const auto chat = asChat()) {
-		return chat->allowsForwarding();
-	}
-	return false;
+	// WHY: this fork intentionally ignores the peer-level "restrict saving
+	// content" (noforward) flag so copying, forwarding and saving stay
+	// available regardless of what the chat owner set. See Story/HistoryItem.
+	return true;
 }
 
 Data::RestrictionCheckResult PeerData::amRestricted(
