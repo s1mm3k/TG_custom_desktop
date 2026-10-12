@@ -157,7 +157,7 @@ jobs:
               Where-Object { $_.Name -ne 'Python' } |
               Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
           }
-          Get-PSDrive C | Select-Object Used, Free | Format-Table
+          Get-PSDrive -PSProvider FileSystem | Select-Object Name, Used, Free | Format-Table
 
       - name: Telegram Desktop build.
         env:
@@ -170,17 +170,17 @@ jobs:
           ${{ matrix.configure_arch }} ^
           -D TDESKTOP_API_ID=%API_ID% ^
           -D TDESKTOP_API_HASH=%API_HASH% ^
-          -D CMAKE_CONFIGURATION_TYPES=Debug ^
+          -D CMAKE_CONFIGURATION_TYPES=Release ^
           -D CMAKE_COMPILE_WARNING_AS_ERROR=OFF ^
           -D CMAKE_MSVC_DEBUG_INFORMATION_FORMAT= ^
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON
 
-          cmake --build ..\out --config Debug --target Telegram --parallel
+          cmake --build ..\out --config Release --target Telegram --parallel
 
       - name: Collect artifact.
         run: |
-          set OUT=%TBUILD%\%REPO_NAME%\out\Debug
+          set OUT=%TBUILD%\%REPO_NAME%\out\Release
           mkdir artifact
           move %OUT%\Telegram.exe artifact\
 
