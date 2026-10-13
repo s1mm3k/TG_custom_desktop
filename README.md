@@ -49,13 +49,6 @@ Media (photos, videos, files, voice) is **never auto-downloaded** — it loads
 only when you open it — GIFs/videos do not auto-play, and stickers and emoji are
 rendered **statically** (first frame only).
 
-## Screenshots
-
-<!-- Add screenshots here. -->
-<!-- ![Anti-deletion](docs/images/anti-deletion.png) -->
-<!-- ![Edit diff](docs/images/edit-diff.png) -->
-<!-- ![Peer & DC ID](docs/images/peer-dc-id.png) -->
-
 ## Download
 
 Prebuilt Windows binaries are published on the [Releases][releases] page. The
