@@ -88,6 +88,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/text/text_custom_emoji.h"
 #include "ui/text/text_utilities.h"
 #include "ui/text/text_variant.h"
+#include "ui/image/image_location.h"
 #include "ui/toast/toast.h"
 #include "ui/vertical_list.h"
 #include "ui/widgets/buttons.h"
@@ -1674,6 +1675,31 @@ Section DetailsFiller::makeInfo() {
 				}
 			});
 	};
+	{
+		// WHY: this fork exposes the raw peer id and the data-center id (taken
+		// from the profile photo location) for OSINT / forensics workflows.
+		const auto bareId = _peer->isUser()
+			? peerToUser(_peer->id).bare
+			: _peer->isChannel()
+			? peerToChannel(_peer->id).bare
+			: _peer->isChat()
+			? peerToChat(_peer->id).bare
+			: BareId(_peer->id.value);
+		addInfoOneLine(
+			u"ID"_q,
+			rpl::single(TextWithEntities{ QString::number(bareId) }),
+			u"ID"_q);
+		const auto &userpicFile = _peer->userpicLocation().file().data;
+		if (const auto storage = std::get_if<StorageFileLocation>(
+				&userpicFile)) {
+			if (const auto dcId = storage->dcId()) {
+				addInfoOneLine(
+					u"DC"_q,
+					rpl::single(TextWithEntities{ QString::number(dcId) }),
+					u"DC"_q);
+			}
+		}
+	}
 	if (const auto user = _peer->asUser()) {
 		if (user->session().supportMode()) {
 			addInfoLineGeneric(
