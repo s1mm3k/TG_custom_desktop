@@ -3908,6 +3908,46 @@ void ApiWrap::forwardMessages(
 			++i;
 		}
 	}
+
+	// WHY: a real server forward from a chat with "restrict saving content"
+	// (noforward) fails with CHAT_FORWARDS_RESTRICTED. This fork instead
+	// reposts such items as new messages without author (AyuForward-style):
+	// the media/text is re-sent from the client. The per-type allowsForwarding
+	// getters still report the real restriction (only the PeerData dispatcher
+	// is overridden by the fork), so they detect genuinely protected sources.
+	const auto realAllowsForwarding = [](not_null<PeerData*> peer) {
+		if (const auto user = peer->asUser()) {
+			return user->allowsForwarding();
+		} else if (const auto channel = peer->asChannel()) {
+			return channel->allowsForwarding();
+		} else if (const auto chat = peer->asChat()) {
+			return chat->allowsForwarding();
+		}
+		return true;
+	};
+	for (auto i = begin(draft.items); i != end(draft.items);) {
+		const auto item = *i;
+		if (realAllowsForwarding(item->history()->peer)) {
+			++i;
+			continue;
+		}
+		const auto media = item->media();
+		const auto caption = item->originalText();
+		auto message = MessageToSend(action);
+		message.textWithTags = TextWithTags{
+			caption.text,
+			TextUtilities::ConvertEntitiesToTextTags(caption.entities),
+		};
+		if (const auto document = media ? media->document() : nullptr) {
+			SendExistingDocument(std::move(message), document);
+		} else if (const auto photo = media ? media->photo() : nullptr) {
+			SendExistingPhoto(std::move(message), photo);
+		} else if (!caption.text.isEmpty()) {
+			sendMessage(std::move(message));
+		}
+		i = draft.items.erase(i);
+	}
+
 	if (draft.items.empty()) {
 		if (successCallback) {
 			successCallback();

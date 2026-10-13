@@ -14,6 +14,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/qthelp_url.h"
 #include "storage/storage_account.h"
 #include "ui/boxes/confirm_box.h"
+#include "api/api_sending.h"
 #include "apiwrap.h"
 #include "ui/widgets/chat_filters_tabs_strip.h"
 #include "ui/widgets/checkbox.h"
@@ -43,8 +44,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/share_message_phrase_factory.h"
 #include "data/business/data_shortcut_messages.h"
 #include "data/data_channel.h"
+#include "data/data_chat.h"
 #include "data/data_chat_filters.h"
 #include "data/data_community.h"
+#include "data/data_media_types.h"
 #include "data/data_game.h"
 #include "data/data_histories.h"
 #include "data/data_user.h"
@@ -1856,6 +1859,63 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			show->showBox(MakeSendErrorBox(error, result.size() > 1));
 			return;
 		} else if (!checkPaid()) {
+			return;
+		}
+
+		// WHY: a real forward from a chat with "restrict saving content"
+		// (noforward) is rejected by the server (CHAT_FORWARDS_RESTRICTED).
+		// This fork reposts such content instead (AyuForward-style): each item
+		// is re-sent as a new message without author. A forward selection is
+		// always from a single source chat, so the source is checked once via
+		// the per-type allowsForwarding getters (still honest; only the
+		// PeerData dispatcher is overridden by the fork).
+		const auto realAllowsForwarding = [](not_null<PeerData*> peer) {
+			if (const auto user = peer->asUser()) {
+				return user->allowsForwarding();
+			} else if (const auto channel = peer->asChannel()) {
+				return channel->allowsForwarding();
+			} else if (const auto chat = peer->asChat()) {
+				return chat->allowsForwarding();
+			}
+			return true;
+		};
+		if (!realAllowsForwarding(items.front()->history()->peer)) {
+			for (const auto &thread : result) {
+				auto action = Api::SendAction(thread, options);
+				action.clearDraft = false;
+				if (!comment.text.isEmpty()) {
+					auto message = Api::MessageToSend(action);
+					message.textWithTags = comment;
+					history->session().api().sendMessage(std::move(message));
+				}
+				for (const auto &item : items) {
+					const auto media = item->media();
+					const auto caption = item->originalText();
+					auto message = Api::MessageToSend(action);
+					message.textWithTags = TextWithTags{
+						caption.text,
+						TextUtilities::ConvertEntitiesToTextTags(
+							caption.entities),
+					};
+					if (const auto document = media
+						? media->document()
+						: nullptr) {
+						Api::SendExistingDocument(
+							std::move(message),
+							document);
+					} else if (const auto photo = media
+						? media->photo()
+						: nullptr) {
+						Api::SendExistingPhoto(std::move(message), photo);
+					} else if (!caption.text.isEmpty()) {
+						history->session().api().sendMessage(
+							std::move(message));
+					}
+				}
+			}
+			if (show->valid()) {
+				show->hideLayer();
+			}
 			return;
 		}
 
