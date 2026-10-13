@@ -1,9 +1,9 @@
 # Custom Telegram Desktop
 
-A modified build of [Telegram Desktop][tdesktop] focused on **control, privacy
-and inspection** for research workflows (OSINT / forensics). Everything here is
-a client-side change to your own client's behaviour — the same category of fork
-as AyuGram / 64Gram / Kotatogram.
+A modified build of [Telegram Desktop][tdesktop] with extended **control,
+privacy and convenience** features. Everything here is a client-side change to
+your own client's behaviour — the same category of fork as AyuGram / 64Gram /
+Kotatogram.
 
 Built and distributed for **Windows 10 / 11 only** (x64 and x86). It keeps
 upstream's MTProto protocol and [Telegram API][telegram_api] integration.
