@@ -377,6 +377,13 @@ public:
 	[[nodiscard]] bool textAppearingStarted() const {
 		return _flags & MessageFlag::TextAppearingStarted;
 	}
+
+	// WHY: anti-deletion fork feature - a message the server told us to delete
+	// is kept locally and marked so it can be tinted red instead of removed.
+	[[nodiscard]] bool serverSideDeleted() const {
+		return _serverSideDeleted;
+	}
+	void markServerSideDeleted();
 	[[nodiscard]] bool hasRealFromId() const;
 	[[nodiscard]] bool isPostHidingAuthor() const;
 	[[nodiscard]] bool isPostShowingAuthor() const;
@@ -822,6 +829,7 @@ private:
 	const not_null<PeerData*> _from;
 	mutable PeerData *_displayFrom = nullptr;
 	mutable MessageFlags _flags = 0;
+	bool _serverSideDeleted = false;
 
 	TextWithEntities _text;
 

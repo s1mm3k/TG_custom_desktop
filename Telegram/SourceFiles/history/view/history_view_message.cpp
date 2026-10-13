@@ -2014,6 +2014,17 @@ void Message::draw(Painter &p, const PaintContext &context) const {
 				});
 		}
 
+		if (item->serverSideDeleted()) {
+			// WHY: anti-deletion - tint the bubble background red (painted over
+			// the normal bubble fill, under the content) so a message kept
+			// after a server-side delete is clearly marked.
+			auto hq = PainterHighQualityEnabler(p);
+			p.setPen(Qt::NoPen);
+			p.setBrush(QColor(220, 40, 40, 90));
+			const auto radius = st::bubbleRadiusLarge;
+			p.drawRoundedRect(g, radius, radius);
+		}
+
 		auto inner = g;
 		paintCommentsButton(p, inner, context);
 

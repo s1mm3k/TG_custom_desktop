@@ -3446,6 +3446,15 @@ bool HistoryItem::forbidsForward() const {
 	return false; // fork bypass: ignore the per-message NoForwards flag
 }
 
+void HistoryItem::markServerSideDeleted() {
+	if (_serverSideDeleted) {
+		return;
+	}
+	_serverSideDeleted = true;
+	_history->owner().requestItemRepaint(this);
+	_history->owner().notifyItemDataChange(this);
+}
+
 bool HistoryItem::forbidsSaving() const {
 	if (forbidsForward()) {
 		return true;

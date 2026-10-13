@@ -3368,11 +3368,10 @@ void Session::processMessagesDeleted(
 			affected->unknownMessageDeleted(messageId.v);
 		}
 	}
-	if (!toDestroy.empty()) {
-		notifyItemsAboutToBeDestroyed(toDestroy);
-		for (const auto &item : toDestroy) {
-			item->destroy();
-		}
+	// WHY: anti-deletion fork feature - keep messages deleted on the server and
+	// mark them (shown with a red tint) instead of destroying them.
+	for (const auto &item : toDestroy) {
+		item->markServerSideDeleted();
 	}
 	for (const auto &history : historiesToCheck) {
 		if (!history->chatListMessageKnown()) {
@@ -3391,11 +3390,10 @@ void Session::processNonChannelMessagesDeleted(const QVector<MTPint> &data) {
 			historiesToCheck.emplace(history);
 		}
 	}
-	if (!toDestroy.empty()) {
-		notifyItemsAboutToBeDestroyed(toDestroy);
-		for (const auto &item : toDestroy) {
-			item->destroy();
-		}
+	// WHY: anti-deletion fork feature - keep messages deleted on the server and
+	// mark them (shown with a red tint) instead of destroying them.
+	for (const auto &item : toDestroy) {
+		item->markServerSideDeleted();
 	}
 	for (const auto &history : historiesToCheck) {
 		if (!history->chatListMessageKnown()) {
