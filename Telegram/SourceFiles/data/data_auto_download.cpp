@@ -217,11 +217,10 @@ void Full::setBytesLimit(Source source, Type type, int64 bytesLimit) {
 }
 
 bool Full::shouldDownload(Source source, Type type, int64 fileSize) const {
-	if (ranges::find(kStreamedTypes, type) != end(kStreamedTypes)) {
-		// With streaming we disable autodownload and hide them in Settings.
-		return false;
-	}
-	return setOrDefault(source, type).shouldDownload(type, fileSize);
+	// WHY: this fork never auto-downloads media and never auto-plays gifs or
+	// videos; such content loads only when the user opens it explicitly.
+	// Stickers return before reaching here, so they still load for display.
+	return false;
 }
 
 int64 Full::bytesLimit(Source source, Type type) const {

@@ -191,7 +191,11 @@ bool Sticker::readyToDrawAnimationFrame() {
 	const auto loaded = _dataMedia->loaded();
 	const auto waitingForPremium = hasPremiumEffect()
 		&& _dataMedia->videoThumbnailContent().isEmpty();
-	if (!_player && loaded && !waitingForPremium && sticker->isAnimated()) {
+	// WHY: this fork does not play animated stickers or animated emoji - the
+	// animation player is never created, so only the static first frame shows.
+	constexpr auto kPlayAnimatedStickers = false;
+	if (kPlayAnimatedStickers
+		&& !_player && loaded && !waitingForPremium && sticker->isAnimated()) {
 		setupPlayer();
 	}
 	return ready();
