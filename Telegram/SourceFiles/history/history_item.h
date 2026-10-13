@@ -384,6 +384,15 @@ public:
 		return _serverSideDeleted;
 	}
 	void markServerSideDeleted();
+
+	// WHY: edit-diff fork feature - the message text as it was before its last
+	// edit, so the view can show a git-style old (red) / new (green) diff.
+	[[nodiscard]] const TextWithEntities &previousVersionText() const {
+		return _previousVersionText;
+	}
+	[[nodiscard]] bool hasPreviousVersion() const {
+		return !_previousVersionText.text.isEmpty();
+	}
 	[[nodiscard]] bool hasRealFromId() const;
 	[[nodiscard]] bool isPostHidingAuthor() const;
 	[[nodiscard]] bool isPostShowingAuthor() const;
@@ -830,6 +839,7 @@ private:
 	mutable PeerData *_displayFrom = nullptr;
 	mutable MessageFlags _flags = 0;
 	bool _serverSideDeleted = false;
+	TextWithEntities _previousVersionText;
 
 	TextWithEntities _text;
 

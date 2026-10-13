@@ -2500,6 +2500,11 @@ void HistoryItem::applyEdition(HistoryMessageEdition &&edition) {
 		setServiceText(std::move(serviceText));
 		addToSharedMediaIndex();
 	} else {
+		// WHY: edit-diff fork feature - remember the text before this edit so
+		// the view can show the previous version (red) and the new one (green).
+		if (!_text.text.isEmpty() && _text.text != updatedText.text) {
+			_previousVersionText = _text;
+		}
 		setText(std::move(updatedText));
 		addToSharedMediaIndex();
 	}

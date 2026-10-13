@@ -2230,7 +2230,9 @@ void Element::validateText() {
 	}
 	const auto &text = _textItem->_text;
 	auto richPage = std::shared_ptr<const Iv::RichPage>();
-	if (!summaryShownChanged && _text.isEmpty() == text.empty()) {
+	if (!summaryShownChanged
+		&& _text.isEmpty() == text.empty()
+		&& !_textItem->hasPreviousVersion()) {
 	} else if (_flags & Flag::ServiceMessage) {
 		const auto contextDependentText = contextDependentServiceText();
 		const auto &markedText = contextDependentText.text.empty()
@@ -2263,6 +2265,23 @@ void Element::validateText() {
 		const auto unavailable = item->computeUnavailableReason();
 		if (!unavailable.isEmpty()) {
 			setTextWithLinks(tr::italic(unavailable));
+		} else if (_textItem->hasPreviousVersion()) {
+			// WHY: edit-diff fork feature - show the previous version
+			// (strikethrough) above the current text; Message::paintText
+			// tints the old lines red and the new lines green, git-style.
+			auto combined = _textItem->previousVersionText();
+			combined.entities.push_back(EntityInText(
+				EntityType::StrikeOut,
+				0,
+				int(combined.text.size())));
+			combined.append(u"\n"_q);
+			combined.append(_textItem->translatedTextWithLocalEntities());
+			// WHY: edit-diff - trailing spacer line (non-breaking space) so the
+			// date / "edited" badge gets its own room and does not overlap the
+			// new text.
+			combined.append(u"\n "_q);
+			setTextWithLinks(combined);
+			richPage = _textItem->translatedRichPage();
 		} else {
 			setTextWithLinks(_textItem->translatedTextWithLocalEntities());
 			richPage = _textItem->translatedRichPage();

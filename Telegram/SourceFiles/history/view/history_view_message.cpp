@@ -60,6 +60,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 #include "settings/sections/settings_premium.h"
 #include "ui/text/text_options.h"
+#include "ui/item_text_options.h"
 #include "ui/painter.h"
 #include "window/window_session_controller.h"
 #include "apiwrap.h"
@@ -3108,6 +3109,30 @@ void Message::paintText(
 			},
 			.cache = &appearing->lineCache,
 		});
+	}
+
+	if (const auto diffItem = data(); diffItem->hasPreviousVersion()) {
+		// WHY: edit-diff - paint git-style line backgrounds behind the text:
+		// red under the previous (strikethrough) version, green under the new.
+		auto oldString = Ui::Text::String(st::msgMinWidth);
+		oldString.setMarkedText(
+			st::messageTextStyle,
+			diffItem->previousVersionText(),
+			Ui::ItemTextOptions(diffItem));
+		const auto oldHeight = oldString.countHeight(trect.width());
+		const auto fullHeight = text().countHeight(trect.width());
+		p.fillRect(
+			trect.x(),
+			trect.y(),
+			trect.width(),
+			oldHeight,
+			QColor(220, 40, 40, 40));
+		p.fillRect(
+			trect.x(),
+			trect.y() + oldHeight,
+			trect.width(),
+			fullHeight - oldHeight,
+			QColor(40, 190, 90, 40));
 	}
 
 	auto highlightRequest = context.computeHighlightCache();
