@@ -2230,9 +2230,7 @@ void Element::validateText() {
 	}
 	const auto &text = _textItem->_text;
 	auto richPage = std::shared_ptr<const Iv::RichPage>();
-	if (!summaryShownChanged
-		&& _text.isEmpty() == text.empty()
-		&& !_textItem->hasPreviousVersion()) {
+	if (!summaryShownChanged && _text.isEmpty() == text.empty()) {
 	} else if (_flags & Flag::ServiceMessage) {
 		const auto contextDependentText = contextDependentServiceText();
 		const auto &markedText = contextDependentText.text.empty()
@@ -2276,10 +2274,6 @@ void Element::validateText() {
 				int(combined.text.size())));
 			combined.append(u"\n"_q);
 			combined.append(_textItem->translatedTextWithLocalEntities());
-			// WHY: edit-diff - trailing spacer lines (non-breaking spaces) so the
-			// date / "edited" badge gets its own room and does not overlap the
-			// new text.
-			combined.append(u"\n \n "_q);
 			setTextWithLinks(combined);
 			richPage = _textItem->translatedRichPage();
 		} else {
