@@ -2276,10 +2276,10 @@ void Element::validateText() {
 				int(combined.text.size())));
 			combined.append(u"\n"_q);
 			combined.append(_textItem->translatedTextWithLocalEntities());
-			// WHY: edit-diff - trailing spacer line (non-breaking space) so the
+			// WHY: edit-diff - trailing spacer lines (non-breaking spaces) so the
 			// date / "edited" badge gets its own room and does not overlap the
 			// new text.
-			combined.append(u"\n "_q);
+			combined.append(u"\n \n "_q);
 			setTextWithLinks(combined);
 			richPage = _textItem->translatedRichPage();
 		} else {

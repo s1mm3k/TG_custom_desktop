@@ -3126,13 +3126,13 @@ void Message::paintText(
 			trect.y(),
 			trect.width(),
 			oldHeight,
-			QColor(220, 40, 40, 40));
+			QColor(220, 40, 40, 90));
 		p.fillRect(
 			trect.x(),
 			trect.y() + oldHeight,
 			trect.width(),
 			fullHeight - oldHeight,
-			QColor(40, 190, 90, 40));
+			QColor(40, 190, 90, 90));
 	}
 
 	auto highlightRequest = context.computeHighlightCache();
