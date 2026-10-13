@@ -999,7 +999,9 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 	});
 
 	const auto &config = _session->serverConfig();
-	bool isOnline = Core::App().hasActiveWindow(&session());
+	// WHY: stealth mode - always report offline so we never appear online to
+	// other users; the first update sets offline and no online pings follow.
+	bool isOnline = false;
 	int updateIn = config.onlineUpdatePeriod;
 	Assert(updateIn >= 0);
 	if (isOnline) {

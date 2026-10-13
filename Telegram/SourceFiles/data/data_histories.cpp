@@ -737,49 +737,16 @@ void Histories::sendReadRequests() {
 void Histories::sendReadRequest(not_null<History*> history, State &state) {
 	Expects(state.willReadTill > state.sentReadTill);
 
-	const auto tillId = state.sentReadTill = base::take(state.willReadTill);
+	const auto tillId = base::take(state.willReadTill);
 	state.willReadWhen = 0;
-	state.sentReadDone = false;
-	DEBUG_LOG(("Reading: sending request now with till %1."
-		).arg(tillId.bare));
-	sendRequest(history, RequestType::ReadInbox, [=](Fn<void()> finish) {
-		DEBUG_LOG(("Reading: sending request invoked with till %1."
-			).arg(tillId.bare));
-		const auto finished = [=] {
-			const auto state = lookup(history);
-			Assert(state != nullptr);
-
-			if (state->sentReadTill == tillId) {
-				state->sentReadDone = true;
-				if (history->unreadCountRefreshNeeded(tillId)) {
-					requestDialogEntry(history);
-				} else {
-					state->sentReadTill = 0;
-				}
-			} else {
-				Assert(!state->sentReadTill || state->sentReadTill > tillId);
-			}
-			history->validateMonoAndForumUnread(tillId);
-			sendReadRequests();
-			finish();
-		};
-		if (const auto channel = history->peer->asChannel()) {
-			return session().api().request(MTPchannels_ReadHistory(
-				channel->inputChannel(),
-				MTP_int(tillId)
-			)).done(finished).fail(finished).send();
-		} else {
-			return session().api().request(MTPmessages_ReadHistory(
-				history->peer->input(),
-				MTP_int(tillId)
-			)).done([=](const MTPmessages_AffectedMessages &result) {
-				session().api().applyAffectedMessages(history->peer, result);
-				finished();
-			}).fail([=] {
-				finished();
-			}).send();
-		}
-	});
+	state.sentReadTill = 0;
+	state.sentReadDone = true;
+	// WHY: stealth mode - never send a read receipt to the server. The local
+	// read position is advanced so the chat looks read in our own UI, but no
+	// messages.readHistory / channels.readHistory request is issued, so the
+	// sender never sees "read" and we never re-sync unread from the server.
+	history->setInboxReadTill(tillId);
+	history->validateMonoAndForumUnread(tillId);
 }
 
 void Histories::checkEmptyState(not_null<History*> history) {

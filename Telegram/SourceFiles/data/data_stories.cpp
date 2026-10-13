@@ -1240,21 +1240,10 @@ void Stories::markAsRead(FullStoryId id, bool viewed) {
 	if (!maybeStory) {
 		return;
 	}
-	const auto story = *maybeStory;
-	if (story->expired() && story->inProfile()) {
-		_incrementViewsPending[id.peer].emplace(id.story);
-		if (!_incrementViewsTimer.isActive()) {
-			_incrementViewsTimer.callOnce(kIncrementViewsDelay);
-		}
-	}
-	if (!bumpReadTill(id.peer, id.story)) {
-		return;
-	}
-	if (!_markReadPending.contains(id.peer)) {
-		sendMarkAsReadRequests();
-	}
-	_markReadPending.emplace(id.peer);
-	_markReadTimer.callOnce(kMarkAsReadDelay);
+	// WHY: stealth mode - anonymous story viewing. Update only the local read
+	// position; never send stories.readStories or stories.incrementStoryViews,
+	// so we do not appear in the story's viewer list or view counts.
+	bumpReadTill(id.peer, id.story);
 }
 
 bool Stories::bumpReadTill(PeerId peerId, StoryId maxReadTill) {
